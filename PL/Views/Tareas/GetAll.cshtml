@@ -1,0 +1,143 @@
+﻿@model ML.Tarea
+
+@{
+    ViewData["Title"] = "Gestión de Tareas";
+}
+
+<h2>Gestión de Tareas</h2>
+
+<button class="btn btn-primary" id="btnAgregar">Agregar Tarea</button>
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.IdTarea)</th>
+            <th>@Html.DisplayNameFor(model => model.Titulo)</th>
+            <th>@Html.DisplayNameFor(model => model.Descripcion)</th>
+            <th>@Html.DisplayNameFor(model => model.FechaCreacion)</th>
+            <th>@Html.DisplayNameFor(model => model.FechaLimite)</th>
+            <th>@Html.DisplayNameFor(model => model.Prioridad)</th>
+            <th>@Html.DisplayNameFor(model => model.Estatus)</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (ML.Tarea tarea in Model.Tareas)
+        {
+            <tr>
+                <td>@tarea.IdTarea</td>
+                <td>@tarea.Titulo</td>
+                <td>@tarea.Descripcion</td>
+                <td>@tarea.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                <td>@tarea.FechaLimite.ToString("dd/MM/yyyy")</td>
+                <td>@tarea.Prioridad</td>
+                <td>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input toggleEstatus" type="checkbox"
+                               data-id="@tarea.IdTarea"
+                        @(tarea.Estatus == "Completada" ? "checked" : "")>
+                        <label class="form-check-label">
+                            @(tarea.Estatus)
+                        </label>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-warning btn-sm btnEditar" data-id="@tarea.IdTarea">Editar</button>
+                    <button class="btn btn-danger btn-sm btnEliminar" data-id="@tarea.IdTarea">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal genérico -->
+<div class="modal fade" id="modalTarea" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body" id="modalContent">
+                <!-- Aquí se carga el formulario o confirmación vía AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+                // Toggle estatus sin refrescar toda la página
+        $(document).on("change", ".toggleEstatus", function () {
+            var id = $(this).data("id");
+            var isChecked = $(this).is(":checked");
+            var label = $(this).closest("div").find("label");
+
+            $.ajax({
+                url: "/Tareas/MarcarCompletada?idTarea=" + id,
+                type: "GET",
+                success: function (response) {
+                    if (response.success) {
+                        if (isChecked) {
+                            label.text("Completada");
+                        } else {
+                            label.text("Pendiente");
+                        }
+                    } else {
+                        alert(response.message);
+                    }
+                }
+            });
+        });
+        // Abrir modal para agregar
+        $("#btnAgregar").click(function () {
+            $.get("/Tareas/Form", function (data) {
+                $("#modalContent").html(data);
+                $("#modalTarea").modal("show");
+            });
+        });
+                // Abrir modal para editar
+        $(".btnEditar").click(function () {
+            var id = $(this).data("id");
+            $.get("/Tareas/Form?idTarea=" + id, function (data) {
+                $("#modalContent").html(data);
+                $("#modalTarea").modal("show");
+            });
+        });
+        
+        // Abrir modal de confirmación para eliminar
+        $(".btnEliminar").click(function () {
+            var id = $(this).data("id");
+            var html = `
+                <h4>¿Seguro que deseas eliminar esta tarea?</h4>
+                <button class="btn btn-danger" id="confirmEliminar" data-id="${id}">Eliminar</button>
+                <button class="btn btn-secondary" data-dismiss="modal">Cancelar</button>`;
+            $("#modalContent").html(html);
+            $("#modalTarea").modal("show");
+        });
+
+        // Confirmar eliminación vía AJAX
+        $(document).on("click", "#confirmEliminar", function () {
+            var id = $(this).data("id");
+            $.ajax({
+                url: "/Tareas/Delete/" + id,
+                type: "GET",
+                success: function () {
+                    $("#modalTarea").modal("hide");
+                    location.reload(); 
+                }
+            });
+        });
+
+        // Guardar tarea vía AJAX
+        $(document).on("submit", "#formTarea", function (e) {
+            e.preventDefault();
+            $.ajax({
+                url: "/Tareas/Form",
+                type: "POST",
+                data: $(this).serialize(),
+                success: function () {
+                    $("#modalTarea").modal("hide");
+                    location.reload(); 
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,45 @@
+﻿@model ML.Tarea
+
+<form id="formTarea">
+    @Html.HiddenFor(m => m.IdTarea)
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Titulo)
+        @Html.TextBoxFor(m => m.Titulo, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Titulo, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Descripcion)
+        @Html.TextAreaFor(m => m.Descripcion, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Descripcion, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+    @Html.LabelFor(m => m.FechaLimite)
+    @Html.TextBoxFor(m => m.FechaLimite, "{0:yyyy-MM-dd}", 
+        new { @class = "form-control", type = "date", 
+              Value = Model.FechaLimite == DateTime.MinValue ? DateTime.Now.ToString("yyyy-MM-dd") : Model.FechaLimite.ToString("yyyy-MM-dd") })
+    @Html.ValidationMessageFor(m => m.FechaLimite, "", new { @class = "text-danger" })
+</div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Prioridad)
+        @Html.DropDownListFor(m => m.Prioridad,
+            new SelectList(new[] { "Alta", "Media", "Baja" }, Model.Prioridad),
+            "Seleccione prioridad",
+            new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Prioridad, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Estatus)
+        @Html.DropDownListFor(m => m.Estatus,
+            new SelectList(new[] { "Pendiente", "Completada" }, Model.Estatus),
+            "Seleccione estatus",
+            new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Estatus, "", new { @class = "text-danger" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+</form>
